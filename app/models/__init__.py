@@ -6,11 +6,11 @@
 # 新增模型后，请在这里导入，供 Alembic 自动发现
 from app.models.admin import Admin
 from app.models.aps_task import ApsTask
-from app.models.stock import StockCategory, StockInOutRecord
+from app.models.stock import StockInboundRecord, StockOutboundRecord
 
 __all__ = [
     "Admin",
     "ApsTask",
-    "StockCategory",
-    "StockInOutRecord",
+    "StockInboundRecord",
+    "StockOutboundRecord",
 ]

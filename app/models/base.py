@@ -6,7 +6,7 @@
 import json
 import re
 import time
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -147,6 +147,8 @@ class CustomBaseModel(Base):
             setattr(self, "update_timestamp", int(time.time()))
 
     def _serialize_value(self, key: str, value: Any) -> Any:
+        if isinstance(value, date) and not isinstance(value, datetime):
+            return value.isoformat()
         if isinstance(value, datetime):
             localized_value = shanghai_datetime(value)
             if localized_value is not None:
