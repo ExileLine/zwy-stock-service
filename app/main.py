@@ -18,7 +18,7 @@ from app.core.middleware import MyMiddleware
 project_config = get_config()
 
 
-def create_app():
+def create_app() -> FastAPI:
     debug = project_config.DEBUG
     kw = {
         "debug": debug
@@ -62,7 +62,7 @@ def create_app():
     static_dir = Path(__file__).resolve().parent / "static"
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-    @app.get("/")
+    @app.get("/", summary="根节点", tags=["root"])
     async def root_redirect():
         return {
             "status": "ok",
