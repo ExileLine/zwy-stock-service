@@ -14,7 +14,7 @@ from app.schemas.stock import (
     StockInboundDelete,
     StockInboundPageQuery,
     StockInboundUpdate,
-    StockOutboundCreate,
+    StockOutboundCreateFromInbound,
     StockOutboundDelete,
     StockOutboundPageQuery,
     StockOutboundUpdate,
@@ -226,11 +226,44 @@ async def list_stock_outbound_records(
 
 @router.post("/outbound/create", summary="新增出库")
 async def create_stock_outbound_record(
-    request_data: StockOutboundCreate = Body(...),
+    request_data: StockOutboundCreateFromInbound = Body(...),
     db_session: AsyncSession = Depends(get_db_session),
 ):
-    record = StockOutboundRecord(**request_data.dict())
+    stmt = (
+        select(StockInboundRecord)
+        .where(
+            StockInboundRecord.id == request_data.inbound_record_id,
+            StockInboundRecord.is_deleted == 0,
+        )
+        .with_for_update()
+    )
+    inbound_record = (await db_session.execute(stmt)).scalar_one_or_none()
+    if inbound_record is None:
+        raise CustomException(detail="未找到入库数据", custom_code=10002)
+
+    available_qty = inbound_record.inbound_qty or 0
+    if available_qty < request_data.outbound_qty:
+        raise CustomException(detail="出库数量不足", custom_code=10005)
+
+    record = StockOutboundRecord(
+        outbound_date=request_data.outbound_date,
+        product_serial_number=inbound_record.serial_number,
+        product_name=inbound_record.product_name,
+        product_brand=inbound_record.product_brand,
+        product_spec=inbound_record.product_spec,
+        pn_code=inbound_record.pn_code,
+        material_code=inbound_record.material_code,
+        outbound_qty=request_data.outbound_qty,
+        usage_purpose=request_data.usage_purpose,
+        target_device_serial_number=request_data.target_device_serial_number,
+        target_room=request_data.target_room,
+        target_device_location=request_data.target_device_location,
+        owner_org=request_data.owner_org,
+        remark=request_data.remark,
+    )
     db_session.add(record)
+    inbound_record.inbound_qty = available_qty - request_data.outbound_qty
+    inbound_record.touch()
     await db_session.commit()
     await db_session.refresh(record)
     return api_response(code=201, data=record.to_dict())

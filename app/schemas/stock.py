@@ -47,6 +47,17 @@ class StockInboundCreate(CommonPydanticCreate):
     product_description: str | None = Field(default=None, description="产品描述")
 
 
+class StockOutboundCreateFromInbound(CommonPydanticCreate):
+    inbound_record_id: int = Field(..., description="入库记录ID")
+    outbound_date: date | None = Field(default=None, description="领用日期")
+    outbound_qty: int = Field(..., ge=1, description="领用数量")
+    usage_purpose: str | None = Field(default=None, description="用途")
+    target_device_serial_number: str | None = Field(default=None, description="用于设备序列号")
+    target_room: str | None = Field(default=None, description="用于机房")
+    target_device_location: str | None = Field(default=None, description="用于设备位置")
+    owner_org: str | None = Field(default=None, description="设备归属用户单位")
+
+
 class StockInboundUpdate(CommonPydanticUpdate):
     inbound_date: date | None = Field(default=None, description="入库日期")
     major_category: str | None = Field(default=None, description="大类")
