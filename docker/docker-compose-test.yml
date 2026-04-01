@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  zwy-stock-service:
+    image: zwy-stock-service:latest
+    container_name: zwy-stock-service
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      FAST_API_ENV: "test"    # 部署环境，可覆盖Dockerfile里的development
+      TZ: "Asia/Shanghai"
+    volumes:
+      - /srv/logs:/srv/logs   # 可选：映射日志目录
+      - /srv/zwy-stock-service:/srv/zwy-stock-service  # 可选：源码映射
