@@ -168,7 +168,7 @@ async def delete_stock_record(
     return api_response(code=204)
 
 
-@router.post("/outbound/page", summary="出库几率列表(分页模糊搜索)")
+@router.post("/outbound/page", summary="出库记录列表(分页模糊搜索)")
 async def list_stock_outbound_records(
         request_data: StockOutboundPageQuery = Body(...),
         db_session: AsyncSession = Depends(get_db_session),
