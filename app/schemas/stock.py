@@ -113,23 +113,3 @@ class StockOutboundCreate(CommonPydanticCreate):
     target_room: str | None = Field(default=None, description="用于机房")
     target_device_location: str | None = Field(default=None, description="用于设备位置")
     owner_org: str | None = Field(default=None, description="设备归属用户单位")
-
-
-class StockOutboundUpdate(CommonPydanticUpdate):
-    outbound_date: date | None = Field(default=None, description="领用日期")
-    product_serial_number: str | None = Field(default=None, description="产品序列号")
-    product_name: str | None = Field(default=None, description="产品名称")
-    product_brand: str | None = Field(default=None, description="产品品牌")
-    product_spec: str | None = Field(default=None, description="产品规格")
-    pn_code: str | None = Field(default=None, description="PN码")
-    material_code: str | None = Field(default=None, description="物料编码")
-    outbound_qty: int | None = Field(default=None, description="领用数量")
-    usage_purpose: str | None = Field(default=None, description="用途")
-    target_device_serial_number: str | None = Field(default=None, description="用于设备序列号")
-    target_room: str | None = Field(default=None, description="用于机房")
-    target_device_location: str | None = Field(default=None, description="用于设备位置")
-    owner_org: str | None = Field(default=None, description="设备归属用户单位")
-
-
-class StockOutboundDelete(CommonPydanticUpdate):
-    id: int = Field(..., description="需要删除的数据ID")

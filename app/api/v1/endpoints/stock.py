@@ -15,9 +15,7 @@ from app.schemas.stock import (
     StockInboundPageQuery,
     StockInboundUpdate,
     StockOutboundCreateFromInbound,
-    StockOutboundDelete,
     StockOutboundPageQuery,
-    StockOutboundUpdate,
 )
 from app.utils.time_tools import TimeTools
 
@@ -26,8 +24,8 @@ router = APIRouter(prefix="/stock", tags=["stock"])
 
 @router.post("/page", summary="库存列表(分页模糊搜索)")
 async def list_stock_records(
-    request_data: StockInboundPageQuery = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
+        request_data: StockInboundPageQuery = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
 ):
     filters = [StockInboundRecord.is_deleted == 0]
 
@@ -102,8 +100,8 @@ async def list_stock_records(
 
 @router.post("/create", summary="新增库存")
 async def create_stock_record(
-    request_data: StockInboundCreate = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
+        request_data: StockInboundCreate = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
 ):
     record = StockInboundRecord(**request_data.dict())
     db_session.add(record)
@@ -114,8 +112,8 @@ async def create_stock_record(
 
 @router.post("/update", summary="编辑库存")
 async def update_stock_record(
-    request_data: StockInboundUpdate = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
+        request_data: StockInboundUpdate = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
 ):
     stmt = select(StockInboundRecord).where(
         StockInboundRecord.id == request_data.id,
@@ -136,8 +134,8 @@ async def update_stock_record(
 
 @router.post("/delete", summary="删除库存")
 async def delete_stock_record(
-    request_data: StockInboundDelete = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
+        request_data: StockInboundDelete = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
 ):
     stmt = select(StockInboundRecord).where(
         StockInboundRecord.id == request_data.id,
@@ -153,10 +151,10 @@ async def delete_stock_record(
     return api_response(code=204)
 
 
-@router.post("/outbound/page", summary="出库列表(分页模糊搜索)")
+@router.post("/outbound/page", summary="出库几率列表(分页模糊搜索)")
 async def list_stock_outbound_records(
-    request_data: StockOutboundPageQuery = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
+        request_data: StockOutboundPageQuery = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
 ):
     filters = [StockOutboundRecord.is_deleted == 0]
 
@@ -224,10 +222,10 @@ async def list_stock_outbound_records(
     )
 
 
-@router.post("/outbound/create", summary="新增出库")
+@router.post("/outbound/create", summary="出库")
 async def create_stock_outbound_record(
-    request_data: StockOutboundCreateFromInbound = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
+        request_data: StockOutboundCreateFromInbound = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
 ):
     stmt = (
         select(StockInboundRecord)
@@ -267,44 +265,3 @@ async def create_stock_outbound_record(
     await db_session.commit()
     await db_session.refresh(record)
     return api_response(code=201, data=record.to_dict())
-
-
-@router.post("/outbound/update", summary="编辑出库")
-async def update_stock_outbound_record(
-    request_data: StockOutboundUpdate = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
-):
-    stmt = select(StockOutboundRecord).where(
-        StockOutboundRecord.id == request_data.id,
-        StockOutboundRecord.is_deleted == 0,
-    )
-    record = (await db_session.execute(stmt)).scalar_one_or_none()
-    if record is None:
-        raise CustomException(detail="未找到数据", custom_code=10002)
-
-    update_data = request_data.dict(exclude={"id"})
-    for key, value in update_data.items():
-        setattr(record, key, value)
-    record.touch()
-    await db_session.commit()
-    await db_session.refresh(record)
-    return api_response(code=203, data=record.to_dict())
-
-
-@router.post("/outbound/delete", summary="删除出库")
-async def delete_stock_outbound_record(
-    request_data: StockOutboundDelete = Body(...),
-    db_session: AsyncSession = Depends(get_db_session),
-):
-    stmt = select(StockOutboundRecord).where(
-        StockOutboundRecord.id == request_data.id,
-        StockOutboundRecord.is_deleted == 0,
-    )
-    record = (await db_session.execute(stmt)).scalar_one_or_none()
-    if record is None:
-        raise CustomException(detail="未找到数据", custom_code=10002)
-
-    record.is_deleted = 1
-    record.touch()
-    await db_session.commit()
-    return api_response(code=204)
