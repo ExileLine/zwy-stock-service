@@ -22,6 +22,19 @@ from app.utils.time_tools import TimeTools
 router = APIRouter(prefix="/stock", tags=["stock"])
 
 
+async def _ensure_inbound_record_not_referenced(
+        inbound_record_id: int,
+        db_session: AsyncSession,
+) -> None:
+    stmt = select(StockOutboundRecord.id).where(
+        StockOutboundRecord.inbound_record_id == inbound_record_id,
+        StockOutboundRecord.is_deleted == 0,
+    )
+    outbound_record_id = (await db_session.execute(stmt)).scalar_one_or_none()
+    if outbound_record_id is not None:
+        raise CustomException(detail="该入库记录已存在出库记录，不允许操作", custom_code=10005)
+
+
 @router.post("/page", summary="库存列表(分页模糊搜索)")
 async def list_stock_records(
         request_data: StockInboundPageQuery = Body(...),
@@ -115,6 +128,8 @@ async def update_stock_record(
         request_data: StockInboundUpdate = Body(...),
         db_session: AsyncSession = Depends(get_db_session),
 ):
+    await _ensure_inbound_record_not_referenced(request_data.id, db_session)
+
     stmt = select(StockInboundRecord).where(
         StockInboundRecord.id == request_data.id,
         StockInboundRecord.is_deleted == 0,
@@ -137,6 +152,8 @@ async def delete_stock_record(
         request_data: StockInboundDelete = Body(...),
         db_session: AsyncSession = Depends(get_db_session),
 ):
+    await _ensure_inbound_record_not_referenced(request_data.id, db_session)
+
     stmt = select(StockInboundRecord).where(
         StockInboundRecord.id == request_data.id,
         StockInboundRecord.is_deleted == 0,
@@ -244,6 +261,7 @@ async def create_stock_outbound_record(
         raise CustomException(detail="出库数量不足", custom_code=10005)
 
     record = StockOutboundRecord(
+        inbound_record_id=inbound_record.id,
         outbound_date=request_data.outbound_date,
         product_serial_number=inbound_record.serial_number,
         product_name=inbound_record.product_name,

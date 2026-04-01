@@ -49,6 +49,7 @@ class StockInboundRecord(CustomBaseModel):
 class StockOutboundRecord(CustomBaseModel):
     __table_name__ = "stock_outbound_record"
 
+    inbound_record_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment="关联入库记录ID")
     outbound_date: Mapped[date | None] = mapped_column(Date, nullable=True, comment="领用日期")
     product_serial_number: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="产品序列号")
     product_name: Mapped[str] = mapped_column(String(255), nullable=False, comment="产品名称")
@@ -65,6 +66,7 @@ class StockOutboundRecord(CustomBaseModel):
     remark: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="备注")
 
     __table_args__ = (
+        Index("ix_stock_outbound_record_inbound_record_id", "inbound_record_id"),
         Index("ix_stock_outbound_record_outbound_date", "outbound_date"),
         Index("ix_stock_outbound_record_product_serial_number", "product_serial_number"),
         Index("ix_stock_outbound_record_product_name", "product_name"),
