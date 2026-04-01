@@ -16,6 +16,23 @@ Author: yangyuexiong
 - 测试环境配置文件：[.env.test](.env.test)
 - 生产环境配置文件：[.env.production](.env.production)
 
+### 数据库初始化与迁移
+
+- ORM 统一基于 SQLAlchemy 2.0
+- 迁移工具统一使用 Alembic，模型注册入口在 `app/models/__init__.py`
+- 生产环境建议先生成迁移 SQL 并经过审核后再执行
+
+```shell
+# 1) 生成迁移脚本（根据当前模型与数据库差异）
+alembic revision --autogenerate -m "feat: update table schema"
+
+# 2) 执行到最新版本
+alembic upgrade head
+
+# 3) 回滚一个版本（可选）
+alembic downgrade -1
+```
+
 ### 启动(本地)
 
 ```shell
