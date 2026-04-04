@@ -33,13 +33,17 @@ alembic upgrade head
 alembic downgrade -1
 ```
 
-### 启动(本地)
+### 启动
 
 ```shell
+# 本地启动
 python local_run.py
 
 # 或
 uv run local_run.py 
+
+# 或
+uv run uvicorn main:app --host 0.0.0.0 --port 5001
 ```
 
 ### docker-compose部署

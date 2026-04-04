@@ -42,7 +42,7 @@ RUN echo "FAST_API_ENV is set to: $FAST_API_ENV"
 RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 # 本地测试: 启动 FastAPI 应用(部署时删除--reload)
-CMD uvicorn main:app --host 0.0.0.0 --port 5001 --reload
+CMD uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
 
 # 暴露 FastAPI 的默认端口
 EXPOSE 5001
