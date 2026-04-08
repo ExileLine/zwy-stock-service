@@ -42,8 +42,16 @@ python local_run.py
 # 或
 uv run local_run.py 
 
-# 或
-uv run uvicorn main:app --host 0.0.0.0 --port 5001
+# 或(`uvicorn`前台调试模式)
+uv run uvicorn app.main:app --host 0.0.0.0 --port 5001
+
+# 或(`gunicorn`前台调试模式)
+uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker app.main:app -b 0.0.0.0:5001
+
+# 或(`gunicorn`后台进程模式)
+uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker app.main:app -b 0.0.0.0:5001 --access-logfile /srv/logs/zwy_stock/access.log --error-logfile /srv/logs/zwy_stock/error.log --log-level debug -D --timeout 300 --capture-output
+
+
 ```
 
 ### docker-compose部署
