@@ -10,8 +10,10 @@ from app.db.session import get_db_session
 from app.models.stock import StockInboundRecord, StockOutboundRecord
 from app.schemas.pagination import page_size, query_result
 from app.schemas.stock import (
+    StockInboundByMajorCategoryPageQuery,
     StockInboundCreate,
     StockInboundDelete,
+    StockInboundMajorCategoryStatPageQuery,
     StockInboundPageQuery,
     StockInboundUpdate,
     StockOutboundCreateFromInbound,
@@ -108,6 +110,126 @@ async def list_stock_records(
         if item.get("update_time"):
             item["update_time"] = TimeTools.convert_to_standard_format(item["update_time"])
         result.append(item)
+
+    return api_response(
+        data=query_result(records=result, now_page=request_data.page, total=total),
+        is_pop=False,
+    )
+
+
+@router.post("/major-category/list/page", summary="按大类查询库存明细(分页模糊搜索)")
+async def list_stock_records_by_major_category(
+        request_data: StockInboundByMajorCategoryPageQuery = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
+):
+    filters = [
+        StockInboundRecord.is_deleted == 0,
+        StockInboundRecord.major_category == request_data.major_category,
+    ]
+
+    if request_data.keyword:
+        keyword = f"%{request_data.keyword}%"
+        filters.append(
+            or_(
+                StockInboundRecord.product_type.ilike(keyword),
+                StockInboundRecord.product_name.ilike(keyword),
+                StockInboundRecord.product_brand.ilike(keyword),
+                StockInboundRecord.product_spec.ilike(keyword),
+                StockInboundRecord.pn_code.ilike(keyword),
+                StockInboundRecord.material_code.ilike(keyword),
+                StockInboundRecord.serial_number.ilike(keyword),
+                StockInboundRecord.applicable_device_type.ilike(keyword),
+                StockInboundRecord.applicable_device_model.ilike(keyword),
+                StockInboundRecord.purchase_order_no.ilike(keyword),
+                StockInboundRecord.supplier.ilike(keyword),
+                StockInboundRecord.warranty_period.ilike(keyword),
+                StockInboundRecord.inbound_room.ilike(keyword),
+                StockInboundRecord.storage_location.ilike(keyword),
+                StockInboundRecord.product_description.ilike(keyword),
+                StockInboundRecord.remark.ilike(keyword),
+            )
+        )
+
+    count_stmt = select(func.count()).select_from(StockInboundRecord).where(*filters)
+    total = (await db_session.execute(count_stmt)).scalar_one()
+
+    offset, limit = page_size(request_data.page, request_data.size)
+    stmt = (
+        select(StockInboundRecord)
+        .where(*filters)
+        .order_by(StockInboundRecord.id.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    records = (await db_session.execute(stmt)).scalars().all()
+
+    result = []
+    for record in records:
+        item = record.to_dict()
+        if item.get("create_time"):
+            item["create_time"] = TimeTools.convert_to_standard_format(item["create_time"])
+        if item.get("update_time"):
+            item["update_time"] = TimeTools.convert_to_standard_format(item["update_time"])
+        result.append(item)
+
+    return api_response(
+        data=query_result(records=result, now_page=request_data.page, total=total),
+        is_pop=False,
+    )
+
+
+@router.post("/major-category/page", summary="按大类统计库存数量(分页模糊搜索)")
+async def list_stock_major_category_stats(
+        request_data: StockInboundMajorCategoryStatPageQuery = Body(...),
+        db_session: AsyncSession = Depends(get_db_session),
+):
+    filters = [
+        StockInboundRecord.is_deleted == 0,
+        StockInboundRecord.major_category.is_not(None),
+        StockInboundRecord.major_category != "",
+    ]
+
+    if request_data.major_category:
+        filters.append(StockInboundRecord.major_category.ilike(f"%{request_data.major_category}%"))
+
+    if request_data.keyword:
+        filters.append(StockInboundRecord.major_category.ilike(f"%{request_data.keyword}%"))
+
+    summary_subquery = (
+        select(StockInboundRecord.major_category)
+        .where(*filters)
+        .group_by(StockInboundRecord.major_category)
+        .subquery()
+    )
+    count_stmt = select(func.count()).select_from(summary_subquery)
+    total = (await db_session.execute(count_stmt)).scalar_one()
+
+    offset, limit = page_size(request_data.page, request_data.size)
+    stmt = (
+        select(
+            StockInboundRecord.major_category.label("major_category"),
+            func.count(StockInboundRecord.id).label("record_count"),
+            func.coalesce(func.sum(StockInboundRecord.inbound_qty), 0).label("total_inbound_qty"),
+        )
+        .where(*filters)
+        .group_by(StockInboundRecord.major_category)
+        .order_by(
+            func.coalesce(func.sum(StockInboundRecord.inbound_qty), 0).desc(),
+            StockInboundRecord.major_category.asc(),
+        )
+        .offset(offset)
+        .limit(limit)
+    )
+    records = (await db_session.execute(stmt)).mappings().all()
+
+    result = [
+        {
+            "major_category": item["major_category"],
+            "record_count": int(item["record_count"] or 0),
+            "total_inbound_qty": int(item["total_inbound_qty"] or 0),
+        }
+        for item in records
+    ]
 
     return api_response(
         data=query_result(records=result, now_page=request_data.page, total=total),

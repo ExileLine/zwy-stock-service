@@ -29,6 +29,20 @@ class StockInboundPageQuery(CommonPage):
     storage_location: str | None = Field(default=None, description="存放位置")
 
 
+class StockInboundMajorCategoryStatPageQuery(CommonPage):
+    model_config = ConfigDict(extra="ignore")
+
+    keyword: str | None = Field(default=None, description="全局关键字")
+    major_category: str | None = Field(default=None, description="大类")
+
+
+class StockInboundByMajorCategoryPageQuery(CommonPage):
+    model_config = ConfigDict(extra="ignore")
+
+    major_category: str = Field(..., description="大类")
+    keyword: str | None = Field(default=None, description="全局关键字")
+
+
 class StockInboundCreate(CommonPydanticCreate):
     inbound_date: date | None = Field(default=None, description="入库日期")
     major_category: str | None = Field(default=None, description="大类")
