@@ -26,6 +26,8 @@ class StockInboundRecord(CustomBaseModel):
     applicable_device_type: Mapped[str | None] = mapped_column(String(64), nullable=True, comment="适用设备类型")
     applicable_device_model: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="适用设备型号")
     purchase_order_no: Mapped[str | None] = mapped_column(String(128), nullable=True, comment="采购单号")
+    supplier: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="供应商")
+    warranty_period: Mapped[str | None] = mapped_column(String(255), nullable=True, comment="维保期")
     inbound_qty: Mapped[int | None] = mapped_column(Integer, nullable=True, comment="入库数量")
     unit: Mapped[str | None] = mapped_column(String(32), nullable=True, comment="单位")
     inbound_room: Mapped[str | None] = mapped_column(String(128), nullable=True, comment="入库机房")

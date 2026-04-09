@@ -54,6 +54,8 @@ async def list_stock_records(
         "applicable_device_type": request_data.applicable_device_type,
         "applicable_device_model": request_data.applicable_device_model,
         "purchase_order_no": request_data.purchase_order_no,
+        "supplier": request_data.supplier,
+        "warranty_period": request_data.warranty_period,
         "inbound_room": request_data.inbound_room,
         "storage_location": request_data.storage_location,
     }
@@ -76,6 +78,8 @@ async def list_stock_records(
                 StockInboundRecord.applicable_device_type.ilike(keyword),
                 StockInboundRecord.applicable_device_model.ilike(keyword),
                 StockInboundRecord.purchase_order_no.ilike(keyword),
+                StockInboundRecord.supplier.ilike(keyword),
+                StockInboundRecord.warranty_period.ilike(keyword),
                 StockInboundRecord.inbound_room.ilike(keyword),
                 StockInboundRecord.storage_location.ilike(keyword),
                 StockInboundRecord.product_description.ilike(keyword),
