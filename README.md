@@ -24,13 +24,13 @@ Author: yangyuexiong
 
 ```shell
 # 1) 生成迁移脚本（根据当前模型与数据库差异）
-alembic revision --autogenerate -m "feat: update table schema"
+uv run alembic revision --autogenerate -m "feat: update table schema"
 
 # 2) 执行到最新版本
-alembic upgrade head
+uv run alembic upgrade head
 
 # 3) 回滚一个版本（可选）
-alembic downgrade -1
+uv run alembic downgrade -1
 ```
 
 ### 启动
@@ -43,13 +43,13 @@ python local_run.py
 uv run local_run.py 
 
 # 或(`uvicorn`前台调试模式)
-uv run uvicorn app.main:app --host 0.0.0.0 --port 5001
+uv run uvicorn app.main:app --host 0.0.0.0 --port 5002
 
 # 或(`gunicorn`前台调试模式)
-uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker app.main:app -b 0.0.0.0:5001
+uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker app.main:app -b 0.0.0.0:5002
 
 # 或(`gunicorn`后台进程模式)
-uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker app.main:app -b 0.0.0.0:5001 --access-logfile /srv/logs/zwy_stock/access.log --error-logfile /srv/logs/zwy_stock/error.log --log-level debug -D --timeout 300 --capture-output
+uv run gunicorn -w 1 -k uvicorn.workers.UvicornWorker app.main:app -b 0.0.0.0:5002 --access-logfile /srv/logs/zwy_stock/access.log --error-logfile /srv/logs/zwy_stock/error.log --log-level debug -D --timeout 300 --capture-output
 
 
 ```
